@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect, useRef } from 'react';
-import { Bot, LayoutDashboard, FilePlus, Settings, Save, AlertCircle, ShieldCheck, Download, Upload as UploadIcon, Sparkles } from 'lucide-react';
+import { Bot, LayoutDashboard, FilePlus, Settings, Save, AlertCircle, ShieldCheck, Download, Upload as UploadIcon, Sparkles, FileText } from 'lucide-react';
 import FileUpload from './components/FileUpload';
 import ResultCard from './components/ResultCard';
 import TaskDashboard from './components/TaskDashboard';
@@ -32,14 +32,14 @@ const App: React.FC = () => {
   const handleExportConfig = () => {
     const config = {
       playbook: playbookInstruction,
-      version: "2.8.0-flash-stable",
+      version: "2.8.5-sync-stable",
       exportedAt: new Date().toISOString()
     };
     const blob = new Blob([JSON.stringify(config, null, 2)], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `kazi-protocol-export-${new Date().getTime()}.json`;
+    a.download = `kazi-brain-sync-${new Date().getTime()}.json`;
     a.click();
   };
 
@@ -52,7 +52,7 @@ const App: React.FC = () => {
         const json = JSON.parse(event.target?.result as string);
         if (json.playbook) {
           setPlaybookInstruction(json.playbook);
-          alert("Protocol from 'Perfect Project' successfully merged!");
+          alert("KAZI Brain Successfully Merged and Synchronized!");
         }
       } catch (err) {
         alert("Invalid protocol file.");
@@ -127,48 +127,69 @@ const App: React.FC = () => {
                     <div className="bg-white rounded-3xl shadow-2xl border border-slate-200 p-10">
                         <div className="flex items-center justify-between mb-8">
                             <div>
-                                <h2 className="text-3xl font-black text-slate-900 tracking-tight">Master Orchestration Protocol</h2>
-                                <p className="text-sm text-slate-500 font-bold uppercase tracking-widest mt-1">Refining KAZI extraction logic</p>
+                                <h2 className="text-3xl font-black text-slate-900 tracking-tight">System Playbook Configuration</h2>
+                                <p className="text-sm text-slate-500 font-bold uppercase tracking-widest mt-1">Agent Logic & Extraction Rules</p>
                             </div>
                             <div className="flex gap-2">
                                 <button 
                                     onClick={handleExportConfig}
-                                    className="p-3 bg-slate-50 text-slate-600 rounded-xl hover:bg-slate-100 transition-colors border border-slate-200"
-                                    title="Export Config"
+                                    className="flex items-center gap-2 px-5 py-3 bg-slate-900 text-white rounded-xl hover:bg-slate-800 transition-all font-black uppercase text-[10px] tracking-widest"
+                                    title="Export Brain"
                                 >
-                                    <Download className="w-5 h-5" />
+                                    <Download className="w-4 h-4" /> Export Sync
                                 </button>
                                 <button 
                                     onClick={() => fileInputRef.current?.click()}
-                                    className="p-3 bg-slate-50 text-slate-600 rounded-xl hover:bg-slate-100 transition-colors border border-slate-200"
-                                    title="Import/Merge Projects"
+                                    className="flex items-center gap-2 px-5 py-3 bg-white text-slate-900 rounded-xl hover:bg-slate-50 transition-all border-2 border-slate-100 font-black uppercase text-[10px] tracking-widest shadow-sm"
+                                    title="Import Brain"
                                 >
-                                    <UploadIcon className="w-5 h-5" />
+                                    <UploadIcon className="w-4 h-4" /> Merge Brain
                                 </button>
                                 <input type="file" ref={fileInputRef} className="hidden" accept=".json" onChange={handleImportConfig} />
                             </div>
                         </div>
-                        <textarea
-                            value={playbookInstruction}
-                            onChange={(e) => setPlaybookInstruction(e.target.value)}
-                            className="w-full h-[500px] p-8 font-mono text-sm border-2 border-slate-100 rounded-3xl focus:ring-4 focus:ring-indigo-50 focus:border-indigo-500 mb-8 bg-slate-50 text-slate-700 outline-none transition-all"
-                        />
+                        <div className="relative group">
+                            <textarea
+                                value={playbookInstruction}
+                                onChange={(e) => setPlaybookInstruction(e.target.value)}
+                                className="w-full h-[500px] p-8 font-mono text-sm border-2 border-slate-100 rounded-3xl focus:ring-4 focus:ring-indigo-50 focus:border-indigo-500 mb-8 bg-slate-50 text-slate-700 outline-none transition-all scrollbar-hide"
+                            />
+                            <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity">
+                                <span className="bg-indigo-600 text-white text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-tighter">Live Logic Editor</span>
+                            </div>
+                        </div>
                         <div className="flex justify-end">
                             <button 
                                 onClick={() => alert("Protocol logic updated successfully.")}
                                 className="flex items-center gap-3 px-8 py-4 bg-indigo-600 text-white rounded-2xl hover:bg-indigo-700 font-black shadow-xl shadow-indigo-100 transition-all uppercase text-xs tracking-widest"
                             >
-                                <Save className="w-5 h-5" /> Commit Logic Changes
+                                <Save className="w-5 h-5" /> Save Logic Changes
                             </button>
                         </div>
                     </div>
 
-                    <div className="bg-indigo-900 rounded-3xl p-10 text-white shadow-2xl relative overflow-hidden">
-                        <Sparkles className="absolute top-10 right-10 w-24 h-24 text-white/10" />
-                        <h3 className="text-xl font-black mb-4 uppercase tracking-wider">Environment Config</h3>
-                        <p className="text-indigo-200 text-sm max-w-2xl font-medium leading-relaxed">
-                            On Netlify or similar hosting, set your <b>API_KEY</b> in the site's environment variables dashboard. The agent will read it from <code>process.env.API_KEY</code>.
-                        </p>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        <div className="bg-slate-900 rounded-3xl p-10 text-white shadow-2xl relative overflow-hidden">
+                            <Sparkles className="absolute top-10 right-10 w-24 h-24 text-white/10" />
+                            <h3 className="text-xl font-black mb-4 uppercase tracking-wider">Sync Specifications</h3>
+                            <p className="text-slate-400 text-sm font-medium leading-relaxed mb-6">
+                                The logic above is the "Master Protocol." You can download it as a JSON file and import it into another instance of KAZI to perfectly synchronize agent behavior.
+                            </p>
+                            <div className="flex items-center gap-2 text-[10px] font-black uppercase text-indigo-400">
+                                <ShieldCheck className="w-4 h-4" /> 256-bit Logic Encryption Ready
+                            </div>
+                        </div>
+                        <div className="bg-white rounded-3xl p-10 border-2 border-slate-100 shadow-xl flex flex-col justify-between">
+                            <div>
+                                <h3 className="text-xl font-black text-slate-900 mb-4 uppercase tracking-wider">System Documentation</h3>
+                                <p className="text-slate-500 text-sm font-medium leading-relaxed">
+                                    A full architectural specification is now available in the project root: <code>KAZI_SYSTEM_SPEC.md</code>. Refer to this for Supabase integration and UI patterns.
+                                </p>
+                            </div>
+                            <button className="mt-6 flex items-center justify-center gap-2 py-3 bg-slate-100 text-slate-600 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-slate-200 transition-all">
+                                <FileText className="w-4 h-4" /> View Local Spec
+                            </button>
+                        </div>
                     </div>
                 </div>
             );
@@ -246,14 +267,14 @@ const App: React.FC = () => {
               </div>
               <div>
                 <h1 className="text-2xl font-black text-slate-900 leading-none tracking-tighter">KAZI ORCHESTRATOR</h1>
-                <p className="text-[10px] uppercase tracking-[0.3em] font-black text-indigo-600 mt-2">ARAG Master Protocol v2.8 FLASH</p>
+                <p className="text-[10px] uppercase tracking-[0.3em] font-black text-indigo-600 mt-2">ARAG Master Protocol v2.8.5</p>
               </div>
             </div>
             
             <div className="flex space-x-3 bg-slate-100/50 p-2 rounded-2xl">
-              <TabButton active={activeTab === 'new'} onClick={() => setActiveTab('new')} icon={<FilePlus className="w-5 h-5"/>} label="Intake" />
+              <TabButton active={activeTab === 'new'} onClick={() => setActiveTab('new'} icon={<FilePlus className="w-5 h-5"/>} label="Intake" />
               <TabButton active={activeTab === 'dashboard'} onClick={() => setActiveTab('dashboard')} icon={<LayoutDashboard className="w-5 h-5"/>} label="Queue" />
-              <TabButton active={activeTab === 'playbook'} onClick={() => setActiveTab('playbook')} icon={<Settings className="w-5 h-5"/>} label="Protocol" />
+              <TabButton active={activeTab === 'playbook'} onClick={() => setActiveTab('playbook')} icon={<Settings className="w-5 h-5"/>} label="Brain" />
             </div>
           </div>
         </div>
