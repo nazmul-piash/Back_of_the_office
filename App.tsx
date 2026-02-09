@@ -32,7 +32,7 @@ const App: React.FC = () => {
   const handleExportConfig = () => {
     const config = {
       playbook: playbookInstruction,
-      version: "2.6.0-stable",
+      version: "2.7.0-pro-merge",
       exportedAt: new Date().toISOString()
     };
     const blob = new Blob([JSON.stringify(config, null, 2)], { type: 'application/json' });
@@ -52,10 +52,10 @@ const App: React.FC = () => {
         const json = JSON.parse(event.target?.result as string);
         if (json.playbook) {
           setPlaybookInstruction(json.playbook);
-          alert("Protocol successfully merged and imported!");
+          alert("Protocol from 'Perfect Project' successfully merged!");
         }
       } catch (err) {
-        alert("Invalid protocol file. Please ensure it's a KAZI export.");
+        alert("Invalid protocol file.");
       }
     };
     reader.readAsText(file);
@@ -92,14 +92,14 @@ const App: React.FC = () => {
         };
         
         setTasks(prev => [newTask, ...prev]);
-      } catch (err) {
+      } catch (err: any) {
         console.error(err);
-        setError("Orchestration failed. This usually happens if images are blurry or the API key is restricted. Try uploading fewer, clearer images.");
+        setError(`Master Orchestration Failed: ${err.message || "Unknown Error"}. Please check if the images are clear and your API key has Pro model access.`);
       } finally {
         setIsProcessing(false);
       }
     } catch (err) {
-      setError("I/O Error: Unable to read source materials.");
+      setError("I/O Error: Unable to process local image files.");
       setIsProcessing(false);
     }
   };
@@ -134,7 +134,7 @@ const App: React.FC = () => {
                                 <button 
                                     onClick={handleExportConfig}
                                     className="p-3 bg-slate-50 text-slate-600 rounded-xl hover:bg-slate-100 transition-colors border border-slate-200"
-                                    title="Export for Merge"
+                                    title="Export Config"
                                 >
                                     <Download className="w-5 h-5" />
                                 </button>
@@ -165,9 +165,9 @@ const App: React.FC = () => {
 
                     <div className="bg-indigo-900 rounded-3xl p-10 text-white shadow-2xl relative overflow-hidden">
                         <Sparkles className="absolute top-10 right-10 w-24 h-24 text-white/10" />
-                        <h3 className="text-xl font-black mb-4 uppercase tracking-wider">Migration Helper</h3>
+                        <h3 className="text-xl font-black mb-4 uppercase tracking-wider">Merge Success Tool</h3>
                         <p className="text-indigo-200 text-sm max-w-2xl font-medium leading-relaxed">
-                            To merge two projects, use the <b>Export</b> tool above on your other project to download the settings, then use the <b>Import</b> tool here. This will perfectly synchronize your "Master Protocol" across any version of KAZI.
+                            This project now supports **Master Protocol Synthesis**. If your "perfect" project has specific instructions, paste them into the box above and click "Commit Logic Changes." The agent will immediately adapt its intelligence to those rules.
                         </p>
                     </div>
                 </div>
@@ -190,8 +190,8 @@ const App: React.FC = () => {
                                     <div className="mt-10 p-6 bg-red-50 text-red-700 rounded-2xl border-2 border-red-100 flex items-start gap-4 text-left">
                                         <AlertCircle className="w-6 h-6 shrink-0 mt-0.5" />
                                         <div>
-                                            <p className="font-black uppercase text-xs tracking-widest mb-1">System Error</p>
-                                            <p className="font-bold">{error}</p>
+                                            <p className="font-black uppercase text-xs tracking-widest mb-1">Orchestration Error</p>
+                                            <p className="font-bold text-sm">{error}</p>
                                         </div>
                                     </div>
                                 )}
@@ -207,8 +207,8 @@ const App: React.FC = () => {
                                     <Bot className="w-12 h-12 text-indigo-600" />
                                 </div>
                             </div>
-                            <h3 className="mt-12 text-3xl font-black text-slate-900 tracking-tighter">Sifting & Synthesizing</h3>
-                            <p className="mt-4 text-slate-400 font-bold uppercase tracking-widest text-xs">Gemini 3 Flash: Fast Extraction Mode</p>
+                            <h3 className="mt-12 text-3xl font-black text-slate-900 tracking-tighter">Sifting & Reasoning</h3>
+                            <p className="mt-4 text-slate-400 font-bold uppercase tracking-widest text-xs">Gemini 3 Pro: Synthesizing {currentImages.length} Evidence Sources</p>
                         </div>
                     )}
 
@@ -246,7 +246,7 @@ const App: React.FC = () => {
               </div>
               <div>
                 <h1 className="text-2xl font-black text-slate-900 leading-none tracking-tighter">KAZI ORCHESTRATOR</h1>
-                <p className="text-[10px] uppercase tracking-[0.3em] font-black text-indigo-600 mt-2">ARAG Master Protocol v2.6</p>
+                <p className="text-[10px] uppercase tracking-[0.3em] font-black text-indigo-600 mt-2">ARAG Master Protocol v2.7 PRO</p>
               </div>
             </div>
             

@@ -4,49 +4,52 @@ import { AnalysisResult } from "../types";
 
 export const DEFAULT_PLAYBOOK = `
 # ROLE: KAZI MASTER ORCHESTRATOR (ADVANCED ARAG PROTOCOL)
-# OBJECTIVE: High-precision data extraction and cross-source synthesis.
+# OBJECTIVE: High-precision data extraction and cross-source synthesis from workplace screenshots.
 
 [CORE LOGIC]
-- Treat all files as one evidence bundle.
-- Cross-reference ID documents with text-based screenshots.
-- Flag discrepancies in addresses or names as "Conflicts."
-- Ensure the "Situation_Summary" is written in a professional, neutral tone.
+- Treat all uploaded images as a single unified evidence bundle.
+- Cross-reference data between IDs, emails, and chat screenshots.
+- Flag discrepancies in names, dates, or addresses as "Conflicts."
+- Ensure the "Situation_Summary" is professional, objective, and ready for mediation or legal claims.
 
-[TARGET PORTALS]
-- Address Change: https://www.arag.de/service/kundenservice/aenderungsmeldung/adressaenderung
-- Bank Change: https://www.arag.de/service/kundenservice/aenderungsmeldung/bankverbindung
-- Claim: https://www.arag.de/service/kundenservice/schadensmeldung/rechtsschutz/
-
-[ACCURACY]
-- If a field is missing, return "NOT_FOUND". Do not guess.
-- Set is_complete to true ONLY if Full Name, Insurance Number, and Case Details are all present.
-- Output MUST be valid JSON.
+[ACCURACY RULES]
+- If a specific data field is not found in any source, return the string "NOT_FOUND".
+- NEVER guess or hallucinate data.
+- Set 'is_complete' to true ONLY if Full Name, Insurance Number, and a clear Situation Summary are present.
+- Output MUST be a single, valid JSON object.
 `;
 
 export const analyzeScreenshots = async (base64Images: string[], systemInstruction: string = DEFAULT_PLAYBOOK): Promise<AnalysisResult> => {
-  // Always create a fresh instance to ensure the latest API key is used
+  // Fresh instance to ensure latest environment variables are used
   const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
   
   try {
-    const imageParts = base64Images.map(img => ({
-      inlineData: {
-        mimeType: "image/jpeg",
-        data: img.replace(/^data:image\/\w+;base64,/, ""),
-      },
-    }));
+    const imageParts = base64Images.map(img => {
+      // Dynamically detect MIME type to prevent API errors
+      const mimeTypeMatch = img.match(/data:([^;]+);base64/);
+      const mimeType = mimeTypeMatch ? mimeTypeMatch[1] : "image/jpeg";
+      
+      return {
+        inlineData: {
+          mimeType: mimeType,
+          data: img.replace(/^data:image\/\w+;base64,/, ""),
+        },
+      };
+    });
 
     const response = await ai.models.generateContent({
-      model: "gemini-3-flash-preview", // Flash is better for high-speed JSON extraction
+      model: "gemini-3-pro-preview", // The 'Pro' model is required for perfect synthesis and reasoning
       contents: {
         parts: [
           ...imageParts,
           {
-            text: "Extract and synthesize all data from these files. Follow the Master Protocol strictly. Return JSON only.",
+            text: "Execute Master Orchestration Protocol. Extract all relevant workplace task data and synthesize into a unified dossier. Return JSON only.",
           },
         ],
       },
       config: {
         systemInstruction: systemInstruction,
+        thinkingConfig: { thinkingBudget: 4000 }, // Allow the model to "think" for better accuracy
         responseMimeType: "application/json",
         responseSchema: {
           type: Type.OBJECT,
@@ -87,17 +90,19 @@ export const analyzeScreenshots = async (base64Images: string[], systemInstructi
             priority: { type: Type.STRING, enum: ["High", "Medium"] },
             conflicts: { type: Type.ARRAY, items: { type: Type.STRING } }
           },
-          required: ["case_summary", "copy_paste_fields", "missing_information", "metadata", "is_complete", "priority", "conflicts"]
+          required: ["case_summary", "copy_paste_fields", "missing_information", "metadata", "is_complete", "priority", "conflicts"],
+          propertyOrdering: ["case_summary", "copy_paste_fields", "missing_information", "metadata", "is_complete", "priority", "conflicts"]
         }
       }
     });
 
     const text = response.text;
-    if (!text) throw new Error("AI Engine returned an empty response.");
+    if (!text) throw new Error("Empty response from AI engine.");
     
     return JSON.parse(text) as AnalysisResult;
-  } catch (error) {
+  } catch (error: any) {
     console.error("Master Orchestration Error:", error);
-    throw error;
+    // Propagate a more descriptive error if available
+    throw new Error(error.message || "Extraction Failed");
   }
 };
