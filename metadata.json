@@ -1,5 +1,7 @@
 {
   "name": "Workplace Intelligence Agent",
   "description": "An intelligent agent that processes screenshots (WhatsApp, Emails, iMessage) to extract structured task data for workplace automation.",
-  "requestFramePermissions": []
+  "requestFramePermissions": [
+    "camera"
+  ]
 }

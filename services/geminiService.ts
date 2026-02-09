@@ -1,7 +1,6 @@
+
 import { GoogleGenAI, Type } from "@google/genai";
 import { AnalysisResult } from "../types";
-
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
 export const DEFAULT_PLAYBOOK = `
 # ROLE: KAZI DATA ORCHESTRATOR (ARAG MASTER PROTOCOL)
@@ -10,7 +9,7 @@ export const DEFAULT_PLAYBOOK = `
 [SYSTEM CONFIGURATION]
 - Context: Treat ALL uploaded files as a single "Unified Case File."
 - Logic: Merge split info. Prioritize PDF data over Screenshot data if there is a conflict.
-- Accuracy: Zero hallucination. Use null (which UI renders as MISSING) if data is not present.
+- Accuracy: Zero hallucination. Use null if data is not present.
 
 [DATA EXTRACTION & MAPPING]
 1. IDENTIFY intent: (Address Change, Claim, Mediation, Health Card).
@@ -26,6 +25,8 @@ export const DEFAULT_PLAYBOOK = `
 `;
 
 export const analyzeScreenshots = async (base64Images: string[], systemInstruction: string = DEFAULT_PLAYBOOK): Promise<AnalysisResult> => {
+  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+  
   try {
     const imageParts = base64Images.map(img => ({
       inlineData: {
@@ -35,7 +36,7 @@ export const analyzeScreenshots = async (base64Images: string[], systemInstructi
     }));
 
     const response = await ai.models.generateContent({
-      model: "gemini-2.0-flash",
+      model: "gemini-3-flash-preview",
       contents: {
         parts: [
           ...imageParts,
@@ -62,14 +63,14 @@ export const analyzeScreenshots = async (base64Images: string[], systemInstructi
             copy_paste_fields: {
               type: Type.OBJECT,
               properties: {
-                Full_Name: { type: Type.STRING, nullable: true },
-                Insurance_Number: { type: Type.STRING, nullable: true },
-                DOB: { type: Type.STRING, nullable: true },
-                Email: { type: Type.STRING, nullable: true },
-                Phone: { type: Type.STRING, nullable: true },
-                Incident_Date: { type: Type.STRING, nullable: true },
-                Address_New: { type: Type.STRING, nullable: true },
-                Situation_Summary: { type: Type.STRING, nullable: true }
+                Full_Name: { type: Type.STRING },
+                Insurance_Number: { type: Type.STRING },
+                DOB: { type: Type.STRING },
+                Email: { type: Type.STRING },
+                Phone: { type: Type.STRING },
+                Incident_Date: { type: Type.STRING },
+                Address_New: { type: Type.STRING },
+                Situation_Summary: { type: Type.STRING }
               },
               required: ["Full_Name", "Insurance_Number", "DOB", "Email", "Phone", "Incident_Date", "Address_New", "Situation_Summary"]
             },
@@ -91,11 +92,12 @@ export const analyzeScreenshots = async (base64Images: string[], systemInstructi
       }
     });
 
-    if (!response.text) {
+    const text = response.text;
+    if (!text) {
       throw new Error("No response from Orchestrator.");
     }
 
-    return JSON.parse(response.text) as AnalysisResult;
+    return JSON.parse(text) as AnalysisResult;
   } catch (error) {
     console.error("Orchestration Error:", error);
     throw error;
