@@ -32,7 +32,7 @@ const App: React.FC = () => {
   const handleExportConfig = () => {
     const config = {
       playbook: playbookInstruction,
-      version: "2.7.0-pro-merge",
+      version: "2.8.0-flash-stable",
       exportedAt: new Date().toISOString()
     };
     const blob = new Blob([JSON.stringify(config, null, 2)], { type: 'application/json' });
@@ -93,8 +93,8 @@ const App: React.FC = () => {
         
         setTasks(prev => [newTask, ...prev]);
       } catch (err: any) {
-        console.error(err);
-        setError(`Master Orchestration Failed: ${err.message || "Unknown Error"}. Please check if the images are clear and your API key has Pro model access.`);
+        console.error("Processing error:", err);
+        setError(err.message || "An unexpected error occurred during extraction.");
       } finally {
         setIsProcessing(false);
       }
@@ -165,9 +165,9 @@ const App: React.FC = () => {
 
                     <div className="bg-indigo-900 rounded-3xl p-10 text-white shadow-2xl relative overflow-hidden">
                         <Sparkles className="absolute top-10 right-10 w-24 h-24 text-white/10" />
-                        <h3 className="text-xl font-black mb-4 uppercase tracking-wider">Merge Success Tool</h3>
+                        <h3 className="text-xl font-black mb-4 uppercase tracking-wider">Environment Config</h3>
                         <p className="text-indigo-200 text-sm max-w-2xl font-medium leading-relaxed">
-                            This project now supports **Master Protocol Synthesis**. If your "perfect" project has specific instructions, paste them into the box above and click "Commit Logic Changes." The agent will immediately adapt its intelligence to those rules.
+                            On Netlify or similar hosting, set your <b>API_KEY</b> in the site's environment variables dashboard. The agent will read it from <code>process.env.API_KEY</code>.
                         </p>
                     </div>
                 </div>
@@ -190,8 +190,8 @@ const App: React.FC = () => {
                                     <div className="mt-10 p-6 bg-red-50 text-red-700 rounded-2xl border-2 border-red-100 flex items-start gap-4 text-left">
                                         <AlertCircle className="w-6 h-6 shrink-0 mt-0.5" />
                                         <div>
-                                            <p className="font-black uppercase text-xs tracking-widest mb-1">Orchestration Error</p>
-                                            <p className="font-bold text-sm">{error}</p>
+                                            <p className="font-black uppercase text-xs tracking-widest mb-1">System Feedback</p>
+                                            <p className="font-bold text-sm leading-relaxed">{error}</p>
                                         </div>
                                     </div>
                                 )}
@@ -207,8 +207,8 @@ const App: React.FC = () => {
                                     <Bot className="w-12 h-12 text-indigo-600" />
                                 </div>
                             </div>
-                            <h3 className="mt-12 text-3xl font-black text-slate-900 tracking-tighter">Sifting & Reasoning</h3>
-                            <p className="mt-4 text-slate-400 font-bold uppercase tracking-widest text-xs">Gemini 3 Pro: Synthesizing {currentImages.length} Evidence Sources</p>
+                            <h3 className="mt-12 text-3xl font-black text-slate-900 tracking-tighter">Extracting & Synthesizing</h3>
+                            <p className="mt-4 text-slate-400 font-bold uppercase tracking-widest text-xs">Gemini 3 Flash: Intelligent Extraction Mode</p>
                         </div>
                     )}
 
@@ -246,7 +246,7 @@ const App: React.FC = () => {
               </div>
               <div>
                 <h1 className="text-2xl font-black text-slate-900 leading-none tracking-tighter">KAZI ORCHESTRATOR</h1>
-                <p className="text-[10px] uppercase tracking-[0.3em] font-black text-indigo-600 mt-2">ARAG Master Protocol v2.7 PRO</p>
+                <p className="text-[10px] uppercase tracking-[0.3em] font-black text-indigo-600 mt-2">ARAG Master Protocol v2.8 FLASH</p>
               </div>
             </div>
             

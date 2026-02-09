@@ -20,12 +20,16 @@ export const DEFAULT_PLAYBOOK = `
 `;
 
 export const analyzeScreenshots = async (base64Images: string[], systemInstruction: string = DEFAULT_PLAYBOOK): Promise<AnalysisResult> => {
-  // Fresh instance to ensure latest environment variables are used
-  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+  const apiKey = process.env.API_KEY;
+  
+  if (!apiKey || apiKey === "undefined" || apiKey.length < 5) {
+    throw new Error("API_KEY is not configured in environment variables. Please check your hosting provider settings.");
+  }
+
+  const ai = new GoogleGenAI({ apiKey });
   
   try {
     const imageParts = base64Images.map(img => {
-      // Dynamically detect MIME type to prevent API errors
       const mimeTypeMatch = img.match(/data:([^;]+);base64/);
       const mimeType = mimeTypeMatch ? mimeTypeMatch[1] : "image/jpeg";
       
@@ -38,7 +42,7 @@ export const analyzeScreenshots = async (base64Images: string[], systemInstructi
     });
 
     const response = await ai.models.generateContent({
-      model: "gemini-3-pro-preview", // The 'Pro' model is required for perfect synthesis and reasoning
+      model: "gemini-3-flash-preview", // Switched to Flash for better accessibility and reliability
       contents: {
         parts: [
           ...imageParts,
@@ -49,7 +53,6 @@ export const analyzeScreenshots = async (base64Images: string[], systemInstructi
       },
       config: {
         systemInstruction: systemInstruction,
-        thinkingConfig: { thinkingBudget: 4000 }, // Allow the model to "think" for better accuracy
         responseMimeType: "application/json",
         responseSchema: {
           type: Type.OBJECT,
@@ -90,8 +93,7 @@ export const analyzeScreenshots = async (base64Images: string[], systemInstructi
             priority: { type: Type.STRING, enum: ["High", "Medium"] },
             conflicts: { type: Type.ARRAY, items: { type: Type.STRING } }
           },
-          required: ["case_summary", "copy_paste_fields", "missing_information", "metadata", "is_complete", "priority", "conflicts"],
-          propertyOrdering: ["case_summary", "copy_paste_fields", "missing_information", "metadata", "is_complete", "priority", "conflicts"]
+          required: ["case_summary", "copy_paste_fields", "missing_information", "metadata", "is_complete", "priority", "conflicts"]
         }
       }
     });
@@ -102,7 +104,8 @@ export const analyzeScreenshots = async (base64Images: string[], systemInstructi
     return JSON.parse(text) as AnalysisResult;
   } catch (error: any) {
     console.error("Master Orchestration Error:", error);
-    // Propagate a more descriptive error if available
-    throw new Error(error.message || "Extraction Failed");
+    // Extract the most useful error message possible
+    const errorMessage = error.message || "Extraction Failed";
+    throw new Error(errorMessage);
   }
 };
