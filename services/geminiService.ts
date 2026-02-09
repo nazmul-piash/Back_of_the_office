@@ -3,28 +3,28 @@ import { GoogleGenAI, Type } from "@google/genai";
 import { AnalysisResult } from "../types";
 
 export const DEFAULT_PLAYBOOK = `
-# ROLE: KAZI DATA ORCHESTRATOR (ARAG MASTER PROTOCOL)
-# OBJECTIVE: Multi-file data extraction, synthesis, and preparation for manual copy-pasting.
+# ROLE: KAZI MASTER ORCHESTRATOR (ADVANCED ARAG PROTOCOL)
+# OBJECTIVE: High-precision data extraction and cross-source synthesis.
 
-[SYSTEM CONFIGURATION]
-- Context: Treat ALL uploaded files as a single "Unified Case File."
-- Logic: Merge split info. Prioritize PDF data over Screenshot data if there is a conflict.
-- Accuracy: Zero hallucination. Use null if data is not present.
+[CORE LOGIC]
+- Treat all files as one evidence bundle.
+- Cross-reference ID documents with text-based screenshots.
+- Flag discrepancies in addresses or names as "Conflicts."
+- Ensure the "Situation_Summary" is written in a professional, neutral tone.
 
-[DATA EXTRACTION & MAPPING]
-1. IDENTIFY intent: (Address Change, Claim, Mediation, Health Card).
-2. TARGET PORTALS:
-   - Address Change: https://www.arag.de/service/kundenservice/aenderungsmeldung/adressaenderung
-   - Bank Change: https://www.arag.de/service/kundenservice/aenderungsmeldung/bankverbindung
-   - Claim: https://www.arag.de/service/kundenservice/schadensmeldung/rechtsschutz/
-3. FOR MEDIATION/CLAIMS: Situation_Summary must be a concise 5-10 line summary.
+[TARGET PORTALS]
+- Address Change: https://www.arag.de/service/kundenservice/aenderungsmeldung/adressaenderung
+- Bank Change: https://www.arag.de/service/kundenservice/aenderungsmeldung/bankverbindung
+- Claim: https://www.arag.de/service/kundenservice/schadensmeldung/rechtsschutz/
 
-[OUTPUT SCHEMA REQUIREMENTS]
-- Return a JSON object matching the provided schema.
-- is_complete is true only if all protocol-relevant fields for that category are found.
+[ACCURACY]
+- If a field is missing, return "NOT_FOUND". Do not guess.
+- Set is_complete to true ONLY if Full Name, Insurance Number, and Case Details are all present.
+- Output MUST be valid JSON.
 `;
 
 export const analyzeScreenshots = async (base64Images: string[], systemInstruction: string = DEFAULT_PLAYBOOK): Promise<AnalysisResult> => {
+  // Always create a fresh instance to ensure the latest API key is used
   const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
   
   try {
@@ -36,12 +36,12 @@ export const analyzeScreenshots = async (base64Images: string[], systemInstructi
     }));
 
     const response = await ai.models.generateContent({
-      model: "gemini-3-flash-preview",
+      model: "gemini-3-flash-preview", // Flash is better for high-speed JSON extraction
       contents: {
         parts: [
           ...imageParts,
           {
-            text: "Execute the KAZI Orchestration protocol. Synthesize these files into the ARAG Master JSON schema.",
+            text: "Extract and synthesize all data from these files. Follow the Master Protocol strictly. Return JSON only.",
           },
         ],
       },
@@ -93,13 +93,11 @@ export const analyzeScreenshots = async (base64Images: string[], systemInstructi
     });
 
     const text = response.text;
-    if (!text) {
-      throw new Error("No response from Orchestrator.");
-    }
-
+    if (!text) throw new Error("AI Engine returned an empty response.");
+    
     return JSON.parse(text) as AnalysisResult;
   } catch (error) {
-    console.error("Orchestration Error:", error);
+    console.error("Master Orchestration Error:", error);
     throw error;
   }
 };

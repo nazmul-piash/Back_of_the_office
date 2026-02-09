@@ -1,5 +1,6 @@
+
 import React, { useCallback, useState } from 'react';
-import { Upload, FileImage, Loader2, Files } from 'lucide-react';
+import { Upload, FileImage, Loader2, Files, Bot } from 'lucide-react';
 
 interface FileUploadProps {
   onFilesSelect: (files: File[]) => void;
@@ -90,12 +91,5 @@ const FileUpload: React.FC<FileUploadProps> = ({ onFilesSelect, isProcessing }) 
     </div>
   );
 };
-
-// Internal Import helper
-const Bot = ({ className }: { className?: string }) => (
-    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M12 8V4H8"/><rect width="16" height="12" x="4" y="8" rx="2"/><path d="M2 14h2"/><path d="M20 14h2"/><path d="M15 13v2"/><path d="M9 13v2"/>
-    </svg>
-);
 
 export default FileUpload;

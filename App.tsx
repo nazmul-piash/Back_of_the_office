@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from 'react';
-import { Bot, LayoutDashboard, FilePlus, Settings, Save, AlertCircle, ShieldCheck } from 'lucide-react';
+
+import React, { useState, useEffect, useRef } from 'react';
+import { Bot, LayoutDashboard, FilePlus, Settings, Save, AlertCircle, ShieldCheck, Download, Upload as UploadIcon, Sparkles } from 'lucide-react';
 import FileUpload from './components/FileUpload';
 import ResultCard from './components/ResultCard';
 import TaskDashboard from './components/TaskDashboard';
@@ -9,6 +10,7 @@ import { AnalysisResult, TaskItem, TaskStatus } from './types';
 const App: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'dashboard' | 'new' | 'playbook'>('new');
   const [playbookInstruction, setPlaybookInstruction] = useState(DEFAULT_PLAYBOOK);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   
   // App State
   const [tasks, setTasks] = useState<TaskItem[]>(() => {
@@ -26,6 +28,38 @@ const App: React.FC = () => {
   useEffect(() => {
     localStorage.setItem('tasks', JSON.stringify(tasks));
   }, [tasks]);
+
+  const handleExportConfig = () => {
+    const config = {
+      playbook: playbookInstruction,
+      version: "2.6.0-stable",
+      exportedAt: new Date().toISOString()
+    };
+    const blob = new Blob([JSON.stringify(config, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `kazi-protocol-export-${new Date().getTime()}.json`;
+    a.click();
+  };
+
+  const handleImportConfig = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      try {
+        const json = JSON.parse(event.target?.result as string);
+        if (json.playbook) {
+          setPlaybookInstruction(json.playbook);
+          alert("Protocol successfully merged and imported!");
+        }
+      } catch (err) {
+        alert("Invalid protocol file. Please ensure it's a KAZI export.");
+      }
+    };
+    reader.readAsText(file);
+  };
 
   const handleFilesSelect = async (files: File[]) => {
     setIsProcessing(true);
@@ -60,7 +94,7 @@ const App: React.FC = () => {
         setTasks(prev => [newTask, ...prev]);
       } catch (err) {
         console.error(err);
-        setError("Orchestration failed. Verify API configuration and input quality.");
+        setError("Orchestration failed. This usually happens if images are blurry or the API key is restricted. Try uploading fewer, clearer images.");
       } finally {
         setIsProcessing(false);
       }
@@ -89,19 +123,35 @@ const App: React.FC = () => {
         
         case 'playbook':
             return (
-                <div className="max-w-5xl mx-auto">
+                <div className="max-w-5xl mx-auto space-y-8">
                     <div className="bg-white rounded-3xl shadow-2xl border border-slate-200 p-10">
                         <div className="flex items-center justify-between mb-8">
                             <div>
                                 <h2 className="text-3xl font-black text-slate-900 tracking-tight">Master Orchestration Protocol</h2>
                                 <p className="text-sm text-slate-500 font-bold uppercase tracking-widest mt-1">Refining KAZI extraction logic</p>
                             </div>
-                            <Settings className="w-8 h-8 text-slate-300" />
+                            <div className="flex gap-2">
+                                <button 
+                                    onClick={handleExportConfig}
+                                    className="p-3 bg-slate-50 text-slate-600 rounded-xl hover:bg-slate-100 transition-colors border border-slate-200"
+                                    title="Export for Merge"
+                                >
+                                    <Download className="w-5 h-5" />
+                                </button>
+                                <button 
+                                    onClick={() => fileInputRef.current?.click()}
+                                    className="p-3 bg-slate-50 text-slate-600 rounded-xl hover:bg-slate-100 transition-colors border border-slate-200"
+                                    title="Import/Merge Projects"
+                                >
+                                    <UploadIcon className="w-5 h-5" />
+                                </button>
+                                <input type="file" ref={fileInputRef} className="hidden" accept=".json" onChange={handleImportConfig} />
+                            </div>
                         </div>
                         <textarea
                             value={playbookInstruction}
                             onChange={(e) => setPlaybookInstruction(e.target.value)}
-                            className="w-full h-[500px] p-8 font-mono text-sm border-2 border-slate-100 rounded-3xl focus:ring-4 focus:ring-indigo-50 focus:border-indigo-500 mb-8 bg-slate-50 text-slate-700 outline-none"
+                            className="w-full h-[500px] p-8 font-mono text-sm border-2 border-slate-100 rounded-3xl focus:ring-4 focus:ring-indigo-50 focus:border-indigo-500 mb-8 bg-slate-50 text-slate-700 outline-none transition-all"
                         />
                         <div className="flex justify-end">
                             <button 
@@ -111,6 +161,14 @@ const App: React.FC = () => {
                                 <Save className="w-5 h-5" /> Commit Logic Changes
                             </button>
                         </div>
+                    </div>
+
+                    <div className="bg-indigo-900 rounded-3xl p-10 text-white shadow-2xl relative overflow-hidden">
+                        <Sparkles className="absolute top-10 right-10 w-24 h-24 text-white/10" />
+                        <h3 className="text-xl font-black mb-4 uppercase tracking-wider">Migration Helper</h3>
+                        <p className="text-indigo-200 text-sm max-w-2xl font-medium leading-relaxed">
+                            To merge two projects, use the <b>Export</b> tool above on your other project to download the settings, then use the <b>Import</b> tool here. This will perfectly synchronize your "Master Protocol" across any version of KAZI.
+                        </p>
                     </div>
                 </div>
             );
@@ -150,7 +208,7 @@ const App: React.FC = () => {
                                 </div>
                             </div>
                             <h3 className="mt-12 text-3xl font-black text-slate-900 tracking-tighter">Sifting & Synthesizing</h3>
-                            <p className="mt-4 text-slate-400 font-bold uppercase tracking-widest text-xs">Processing {currentImages.length} Source Documents</p>
+                            <p className="mt-4 text-slate-400 font-bold uppercase tracking-widest text-xs">Gemini 3 Flash: Fast Extraction Mode</p>
                         </div>
                     )}
 
@@ -188,7 +246,7 @@ const App: React.FC = () => {
               </div>
               <div>
                 <h1 className="text-2xl font-black text-slate-900 leading-none tracking-tighter">KAZI ORCHESTRATOR</h1>
-                <p className="text-[10px] uppercase tracking-[0.3em] font-black text-indigo-600 mt-2">ARAG Master Protocol v2.5</p>
+                <p className="text-[10px] uppercase tracking-[0.3em] font-black text-indigo-600 mt-2">ARAG Master Protocol v2.6</p>
               </div>
             </div>
             
